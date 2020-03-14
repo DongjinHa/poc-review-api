@@ -72,7 +72,6 @@ public class ReviewServiceImpl implements ReviewService {
         	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-29)+"1231"));
 			break;
         case "40" :
-//        	criteriaList.add(Criteria.where("reviewer.birthDay").gte(Integer.toString(currentYear-48)+"0101"));
         	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-39)+"1231"));
 			break;
         }
@@ -102,12 +101,12 @@ public class ReviewServiceImpl implements ReviewService {
 		MatchOperation matchByFTS = null;
 		if(Strings.isEmpty(reviewDTO.getKey())==false) {
 			//like 검색
-			//criteriaTargetList.add(Criteria.where("goodCnts").regex(reviewDTO.getKey()));
+			criteriaTargetList.add(Criteria.where("goodCnts").regex(reviewDTO.getKey()));
 			
 			//full text search 검색
 			//db.reviews.createIndex({"goodCnts":"text"}) -- 인덱스 생성필요
-			TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(reviewDTO.getKey());
-			matchByFTS = Aggregation.match(textCriteria);
+			//TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(reviewDTO.getKey());
+			//matchByFTS = Aggregation.match(textCriteria);
 		}
 
 		// 키워드 검색대상이 있으면 수행
