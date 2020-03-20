@@ -24,4 +24,5 @@ public interface ReviewService {
 	public List<CommentDTO> getMoreComments(String id, int PageNo);
 	public int getCommentsTotalCount(String id);
 
+	public void createData();
 }
