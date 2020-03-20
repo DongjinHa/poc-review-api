@@ -134,7 +134,7 @@ public class ReviewServiceImpl implements ReviewService {
 
 		}else {
 			
-			ProjectionOperation project = Aggregation.project().andExclude("reviewer_id");
+//			ProjectionOperation project = Aggregation.project().andExclude("reviewer_id");
 			// 1:최신순, 2:조회순
 			SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "regDate");
 			if(reviewDTO.getSort()==2) {
@@ -144,9 +144,9 @@ public class ReviewServiceImpl implements ReviewService {
 			LimitOperation limit = Aggregation.limit(20);
 			
 			if(matchByFTS == null)
-				aggregation = Aggregation.newAggregation(lookUp, match, project, sort, skip, limit);
+				aggregation = Aggregation.newAggregation(lookUp, match, sort, skip, limit);
 			else
-				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, project, sort, skip, limit);
+				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, sort, skip, limit);
 		}
 		
 	    AggregationResults<ReviewDTO> result = mongoTemplate.aggregate(aggregation, Review.class, ReviewDTO.class);
