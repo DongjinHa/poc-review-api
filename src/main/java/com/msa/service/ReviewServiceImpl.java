@@ -106,19 +106,20 @@ public class ReviewServiceImpl implements ReviewService {
 		
 		// 상품코드 검색(키워드로 상품정보를 조회해온 경우)
 		if(reviewDTO.getPrdSeqList() != null && reviewDTO.getPrdSeqList().size() > 0) {
-			criteriaTargetList.add(Criteria.where("prdSeq").in(reviewDTO.getPrdSeqList()));
+			//키워드 like 검색사용시 or조건적용을 위해 주석해제
+			//criteriaTargetList.add(Criteria.where("prdSeq").in(reviewDTO.getPrdSeqList()));
 		}
 		
 		// 키워드 검색
 		MatchOperation matchByFTS = null;
 		if(Strings.isEmpty(reviewDTO.getKey())==false) {
 			//like 검색
-			criteriaTargetList.add(Criteria.where("goodCnts").regex(reviewDTO.getKey()));
+			//criteriaTargetList.add(Criteria.where("goodCnts").regex(reviewDTO.getKey()));
 			
 			//full text search 검색
 			//db.reviews.createIndex({"goodCnts":"text"}) -- 인덱스 생성필요
-			//TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(reviewDTO.getKey());
-			//matchByFTS = Aggregation.match(textCriteria);
+			TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(reviewDTO.getKey());
+			matchByFTS = Aggregation.match(textCriteria);
 		}
 
 		// 키워드 검색대상이 있으면 수행
@@ -146,7 +147,6 @@ public class ReviewServiceImpl implements ReviewService {
 
 		}else {
 			
-//			ProjectionOperation project = Aggregation.project().andExclude("reviewer_id");
 			// 1:최신순, 2:조회순
 			SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "regDate");
 			if(reviewDTO.getSort()==2) {
@@ -159,6 +159,7 @@ public class ReviewServiceImpl implements ReviewService {
 				aggregation = Aggregation.newAggregation(lookUp, match, sort, skip, limit);
 			else
 				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, sort, skip, limit);
+			
 		}
 		
 	    AggregationResults<ReviewDTO> result = mongoTemplate.aggregate(aggregation, Review.class, ReviewDTO.class);
