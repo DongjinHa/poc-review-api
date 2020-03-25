@@ -18,7 +18,6 @@ import org.springframework.data.mongodb.core.aggregation.CountOperation;
 import org.springframework.data.mongodb.core.aggregation.LimitOperation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
-import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SkipOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -63,6 +62,11 @@ public class ReviewServiceImpl implements ReviewService {
 		
 		// A:포토리뷰, B:간단리뷰 
 		criteriaList.add(Criteria.where("reviewCl").is(reviewDTO.getReviewCl()));
+		
+		// 상품코드
+		if(reviewDTO.getPrdSeq() != null && !"".equals(reviewDTO.getPrdSeq())) {
+			criteriaList.add(Criteria.where("prdSeq").is(reviewDTO.getPrdSeq()));
+		}
 		
 		// 연령  
         int currentYear  = Calendar.getInstance().get(Calendar.YEAR);
