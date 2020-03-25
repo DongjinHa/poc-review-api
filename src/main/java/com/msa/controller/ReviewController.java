@@ -1,6 +1,8 @@
 package com.msa.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -29,7 +31,7 @@ public class ReviewController {
     }
     
     @PostMapping("/allreview-totcnt")
-    public int getReviewTotCnt(@RequestBody ReviewDTO reviewdto) {
+    public Map<String,String> getReviewTotCnt(@RequestBody ReviewDTO reviewdto) {
 		
 		int totCnt = 0;
 		reviewdto.setTotCntYn("Y");
@@ -37,8 +39,11 @@ public class ReviewController {
 		if (list != null) {
 			totCnt = list.get(0).getTotCnt();
 		}
+		
+		Map<String,String> map = new HashMap<>();
+		map.put("TotCnt", totCnt+"");
 
-		return totCnt; 
+		return map; 
     }
 
     @GetMapping("/getReviewList1")
