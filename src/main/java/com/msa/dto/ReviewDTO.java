@@ -30,8 +30,9 @@ public class ReviewDTO {
 	
 	//필터 변수
 	private List<String> prdSeqList;
-	private String totCntYn;
-	private int totCnt;
+	private String infoYn;
+	private String avgScore;
+	private String totCnt;
 	private int pageNo;
 	private String key;
 	private int sort;

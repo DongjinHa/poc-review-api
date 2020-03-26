@@ -14,10 +14,11 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.AggregationResults;
-import org.springframework.data.mongodb.core.aggregation.CountOperation;
+import org.springframework.data.mongodb.core.aggregation.GroupOperation;
 import org.springframework.data.mongodb.core.aggregation.LimitOperation;
 import org.springframework.data.mongodb.core.aggregation.LookupOperation;
 import org.springframework.data.mongodb.core.aggregation.MatchOperation;
+import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SkipOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -67,7 +68,7 @@ public class ReviewServiceImpl implements ReviewService {
 		if(reviewDTO.getPrdSeq() != null && !"".equals(reviewDTO.getPrdSeq())) {
 			criteriaList.add(Criteria.where("prdSeq").is(reviewDTO.getPrdSeq()));
 		}
-		
+
 		// 연령  
         int currentYear  = Calendar.getInstance().get(Calendar.YEAR);
         String uage = reviewDTO.getUage();
@@ -140,16 +141,18 @@ public class ReviewServiceImpl implements ReviewService {
 
 		Aggregation aggregation;
 		// 총건수 조회여부에 따라수행
-		if(reviewDTO.getTotCntYn() != null && "Y".equals(reviewDTO.getTotCntYn())){
-			
-			CountOperation count = Aggregation.count().as("totCnt");
+		if(reviewDTO.getInfoYn() != null && "Y".equals(reviewDTO.getInfoYn())){
+			GroupOperation group = Aggregation.group().avg("evalScore").as("avgScore").count().as("totCnt");
+			ProjectionOperation project = Aggregation.project("totCnt").and("avgScore").substring(0, 3).as("avgScore");
+
+			//CountOperation count = Aggregation.count().as("totCnt");
 
 			if(matchByFTS == null)
-				aggregation = Aggregation.newAggregation(lookUp, match, count);
+				aggregation = Aggregation.newAggregation(lookUp, match, group, project);
 			else
-				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, count);
+				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, group, project);
 
-		}else {
+		}else{
 			
 			// 1:최신순, 2:조회순
 			SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "regDate");
@@ -171,7 +174,7 @@ public class ReviewServiceImpl implements ReviewService {
 		return result.getMappedResults(); 
 	}
 	
-	public List<ReviewDTO> getReviewList1() {		//파워리뷰 출력을 위한 서비스
+	public List<ReviewDTO> getPowerReview() {		//파워리뷰 출력을 위한 서비스
 		/*Query query = new Query()
 				.addCriteria(Criteria.where("bestFl").is("Y"))
 				.addCriteria(Criteria.where("reviewCl").is("A"))

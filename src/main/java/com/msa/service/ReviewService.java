@@ -9,7 +9,7 @@ import com.msa.dto.ReviewerDTO;
 public interface ReviewService {
 
 	public List<ReviewDTO> getReviewList(ReviewDTO reviewDTO);
-	public List<ReviewDTO> getReviewList1();
+	public List<ReviewDTO> getPowerReview();
     //public Optional<ReviewDTO> getReview(String id);
 	public ReviewDTO getReview(String id);
     public void delReview(String id);

@@ -30,25 +30,28 @@ public class ReviewController {
 		return reviewService.getReviewList(reviewdto);
     }
     
-    @PostMapping("/allreview-totcnt")
-    public Map<String,String> getReviewTotCnt(@RequestBody ReviewDTO reviewdto) {
+    @PostMapping("/allreview-info")
+    public Map<String,String> getReviewListInfo(@RequestBody ReviewDTO reviewdto) {
 		
-		int totCnt = 0;
-		reviewdto.setTotCntYn("Y");
+		String totCnt = "0";
+    	String avgScore = "0";
+		reviewdto.setInfoYn("Y");
 		List<ReviewDTO> list = reviewService.getReviewList(reviewdto);
 		if (list != null) {
 			totCnt = list.get(0).getTotCnt();
+			avgScore = list.get(0).getAvgScore();
 		}
-		
+
 		Map<String,String> map = new HashMap<>();
-		map.put("TotCnt", totCnt+"");
+		map.put("TotCnt", totCnt);
+		map.put("AvgScore", avgScore);
 
 		return map; 
     }
 
-    @GetMapping("/getReviewList1")
-    public List<ReviewDTO> getReviewList1() {
-        return reviewService.getReviewList1();
+    @GetMapping("/powerreview")
+    public List<ReviewDTO> getPowerReview() {
+        return reviewService.getPowerReview();
     }   
     
     @GetMapping("/getReview/{id}")
