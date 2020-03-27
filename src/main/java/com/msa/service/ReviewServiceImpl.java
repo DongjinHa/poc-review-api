@@ -94,18 +94,18 @@ public class ReviewServiceImpl implements ReviewService {
         }
         
 		// 피부타입
-		if(reviewDTO.getSkintypecdyn().equals("Y")) {
+		if(reviewDTO.getSkintypecdyn() != null && reviewDTO.getSkintypecdyn().equals("Y")) {
 			criteriaList.add(Criteria.where("reviewer.skinTypeCd").in(reviewDTO.getSkintypecd1(),reviewDTO.getSkintypecd2(),reviewDTO.getSkintypecd3()
 					,reviewDTO.getSkintypecd4(),reviewDTO.getSkintypecd5(),reviewDTO.getSkintypecd6(),reviewDTO.getSkintypecd7()));
 		}
 		
 		// 피부밝기
-		if(reviewDTO.getSkinetcinfoyn().equals("Y")) {
+		if(reviewDTO.getSkinetcinfoyn() != null && reviewDTO.getSkinetcinfoyn().equals("Y")) {
 			criteriaList.add(Criteria.where("reviewer.skinEtcInfo").in(reviewDTO.getSkinetcinfo1(),reviewDTO.getSkinetcinfo2(),reviewDTO.getSkinetcinfo3()));
 		}
 		
 		// 피부톤
-		if(reviewDTO.getSkintonecdyn().equals("Y")) {
+		if(reviewDTO.getSkintonecdyn() != null && reviewDTO.getSkintonecdyn().equals("Y")) {
 			criteriaList.add(Criteria.where("reviewer.skinToneCd").in(reviewDTO.getSkintonecd1(),reviewDTO.getSkintonecd2(),reviewDTO.getSkintonecd3()));
 		}
 		
