@@ -30,12 +30,15 @@ import org.springframework.stereotype.Service;
 import com.msa.document.Comment;
 import com.msa.document.Review;
 import com.msa.document.Reviewer;
-import com.msa.dto.CommentDTO;
-import com.msa.dto.ReviewDTO;
-import com.msa.dto.ReviewerDTO;
+import com.msa.dto.request.ReviewReqDTO;
+import com.msa.dto.response.CommentDTO;
+import com.msa.dto.response.ReviewDTO;
+import com.msa.dto.response.ReviewInfoDTO;
+import com.msa.dto.response.ReviewerDTO;
 import com.msa.repository.CommentRepository;
 import com.msa.repository.ReviewRepository;
 import com.msa.repository.ReviewerRepository;
+import com.msa.service.aggregation.ReviewerAggregation;
 
 @Service
 public class ReviewServiceImpl implements ReviewService {
@@ -55,123 +58,20 @@ public class ReviewServiceImpl implements ReviewService {
 		this.mongoTemplate = mongoTemplate;
 	}
 	
-	public List<ReviewDTO> getReviewList(ReviewDTO reviewDTO) {
+	public List<ReviewDTO> getReviewList(ReviewReqDTO reviewReqDTO) {
 		
-		List<CriteriaDefinition> criteriaList = new ArrayList<>();
-		List<CriteriaDefinition> criteriaTargetList = new ArrayList<>();
-		Criteria criteriaTargetForKey = new Criteria();
-		
-		// A:포토리뷰, B:간단리뷰 
-		criteriaList.add(Criteria.where("reviewCl").is(reviewDTO.getReviewCl()));
-		
-		// 상품코드
-		if(reviewDTO.getPrdSeq() != null && !"".equals(reviewDTO.getPrdSeq())) {
-			criteriaList.add(Criteria.where("prdSeq").is(reviewDTO.getPrdSeq()));
-		}
-
-		// 연령  
-        int currentYear  = Calendar.getInstance().get(Calendar.YEAR);
-        String uage = reviewDTO.getUage();
-        
-        switch(uage) {
-        case "all" :
-        	break;
-        case "10" :
-        	criteriaList.add(Criteria.where("reviewer.birthDay").gte(Integer.toString(currentYear-18)+"0101"));
-        	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-9)+"1231"));
-			break;
-        case "20" :
-        	criteriaList.add(Criteria.where("reviewer.birthDay").gte(Integer.toString(currentYear-28)+"0101"));
-        	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-19)+"1231"));
-			break;
-        case "30" :
-        	criteriaList.add(Criteria.where("reviewer.birthDay").gte(Integer.toString(currentYear-38)+"0101"));
-        	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-29)+"1231"));
-			break;
-        case "40" :
-        	criteriaList.add(Criteria.where("reviewer.birthDay").lte(Integer.toString(currentYear-39)+"1231"));
-			break;
-        }
-        
-		// 피부타입
-		if(reviewDTO.getSkintypecdyn() != null && reviewDTO.getSkintypecdyn().equals("Y")) {
-			criteriaList.add(Criteria.where("reviewer.skinTypeCd").in(reviewDTO.getSkintypecd1(),reviewDTO.getSkintypecd2(),reviewDTO.getSkintypecd3()
-					,reviewDTO.getSkintypecd4(),reviewDTO.getSkintypecd5(),reviewDTO.getSkintypecd6(),reviewDTO.getSkintypecd7()));
-		}
-		
-		// 피부밝기
-		if(reviewDTO.getSkinetcinfoyn() != null && reviewDTO.getSkinetcinfoyn().equals("Y")) {
-			criteriaList.add(Criteria.where("reviewer.skinEtcInfo").in(reviewDTO.getSkinetcinfo1(),reviewDTO.getSkinetcinfo2(),reviewDTO.getSkinetcinfo3()));
-		}
-		
-		// 피부톤
-		if(reviewDTO.getSkintonecdyn() != null && reviewDTO.getSkintonecdyn().equals("Y")) {
-			criteriaList.add(Criteria.where("reviewer.skinToneCd").in(reviewDTO.getSkintonecd1(),reviewDTO.getSkintonecd2(),reviewDTO.getSkintonecd3()));
-		}
-		
-		// 상품코드 검색(키워드로 상품정보를 조회해온 경우)
-		if(reviewDTO.getPrdSeqList() != null && reviewDTO.getPrdSeqList().size() > 0) {
-			//키워드 like 검색사용시 or조건적용을 위해 주석해제
-			//criteriaTargetList.add(Criteria.where("prdSeq").in(reviewDTO.getPrdSeqList()));
-		}
-		
-		// 키워드 검색
-		MatchOperation matchByFTS = null;
-		if(Strings.isEmpty(reviewDTO.getKey())==false) {
-			//like 검색
-			//criteriaTargetList.add(Criteria.where("goodCnts").regex(reviewDTO.getKey()));
-			
-			//full text search 검색
-			//db.reviews.createIndex({"goodCnts":"text"}) -- 인덱스 생성필요
-			TextCriteria textCriteria = TextCriteria.forDefaultLanguage().matching(reviewDTO.getKey());
-			matchByFTS = Aggregation.match(textCriteria);
-		}
-
-		// 키워드 검색대상이 있으면 수행
-        if(criteriaTargetList.size() > 0) {
-        	criteriaList.add(criteriaTargetForKey.orOperator(criteriaTargetList.toArray(new Criteria[criteriaTargetList.size()])));	
-        }
-        
-		Criteria criteria = new Criteria().andOperator(criteriaList.toArray(new Criteria[criteriaList.size()]));
-		
-		MatchOperation match = Aggregation.match(criteria);
-		LookupOperation lookUp = LookupOperation.newLookup()
-				.from("reviewers").localField("reviewer_id")   	//1. 묶을 컬렉션 이름은 reviewers, 대상 도큐먼트는 같은 이름인 reviewer_id
-				.foreignField("_id").as("reviewer");  			//2. 조회할 컬렉션에서 해당 reviews 컬렉션이 묶일 도큐먼트 이름은 _id, 별명은 reviewer
-
-		Aggregation aggregation;
-		// 총건수 조회여부에 따라수행
-		if(reviewDTO.getInfoYn() != null && "Y".equals(reviewDTO.getInfoYn())){
-			GroupOperation group = Aggregation.group().avg("evalScore").as("avgScore").count().as("totCnt");
-			ProjectionOperation project = Aggregation.project("totCnt").and("avgScore").substring(0, 3).as("avgScore");
-
-			//CountOperation count = Aggregation.count().as("totCnt");
-
-			if(matchByFTS == null)
-				aggregation = Aggregation.newAggregation(lookUp, match, group, project);
-			else
-				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, group, project);
-
-		}else{
-			
-			// 1:최신순, 2:조회순
-			SortOperation sort = Aggregation.sort(Sort.Direction.DESC, "regDate");
-			if(reviewDTO.getSort()==2) {
-				sort = Aggregation.sort(Sort.Direction.DESC, "hit");
-			}
-			SkipOperation skip = Aggregation.skip((long)(reviewDTO.getPageNo()-1)*20);
-			LimitOperation limit = Aggregation.limit(20);
-			
-			if(matchByFTS == null)
-				aggregation = Aggregation.newAggregation(lookUp, match, sort, skip, limit);
-			else
-				aggregation = Aggregation.newAggregation(matchByFTS, lookUp, match, sort, skip, limit);
-			
-		}
-		
+		Aggregation aggregation = ReviewerAggregation.getReviewListAggr(reviewReqDTO);
 	    AggregationResults<ReviewDTO> result = mongoTemplate.aggregate(aggregation, Review.class, ReviewDTO.class);
 	    
 		return result.getMappedResults(); 
+	}
+	
+	public ReviewInfoDTO getReviewListInfo(ReviewReqDTO reviewReqDTO) {
+		
+		Aggregation aggregation = ReviewerAggregation.getReviewListAggr(reviewReqDTO);
+	    AggregationResults<ReviewInfoDTO> result = mongoTemplate.aggregate(aggregation, Review.class, ReviewInfoDTO.class);
+	    
+		return result.getUniqueMappedResult();
 	}
 	
 	public List<ReviewDTO> getPowerReview() {		//파워리뷰 출력을 위한 서비스

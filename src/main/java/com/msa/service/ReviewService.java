@@ -2,13 +2,16 @@ package com.msa.service;
 
 import java.util.List;
 
-import com.msa.dto.CommentDTO;
-import com.msa.dto.ReviewDTO;
-import com.msa.dto.ReviewerDTO;
+import com.msa.dto.request.ReviewReqDTO;
+import com.msa.dto.response.CommentDTO;
+import com.msa.dto.response.ReviewDTO;
+import com.msa.dto.response.ReviewInfoDTO;
+import com.msa.dto.response.ReviewerDTO;
 
 public interface ReviewService {
 
-	public List<ReviewDTO> getReviewList(ReviewDTO reviewDTO);
+	public List<ReviewDTO> getReviewList(ReviewReqDTO reviewReqDTO);
+	public ReviewInfoDTO getReviewListInfo(ReviewReqDTO reviewReqDTO);
 	public List<ReviewDTO> getPowerReview();
     //public Optional<ReviewDTO> getReview(String id);
 	public ReviewDTO getReview(String id);

@@ -1,13 +1,10 @@
-package com.msa.dto;
+package com.msa.dto.response;
 
-import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
-@Document(collection = "reviewers")
 public class ReviewerDTO {
 	@Id
 	private String _id;

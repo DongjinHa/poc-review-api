@@ -1,8 +1,6 @@
 package com.msa.controller;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -13,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.msa.dto.CommentDTO;
-import com.msa.dto.ReviewDTO;
-import com.msa.dto.ReviewerDTO;
+import com.msa.dto.request.ReviewReqDTO;
+import com.msa.dto.response.CommentDTO;
+import com.msa.dto.response.ReviewDTO;
+import com.msa.dto.response.ReviewInfoDTO;
+import com.msa.dto.response.ReviewerDTO;
 import com.msa.service.ReviewService;
  
 @RestController
@@ -26,27 +26,16 @@ public class ReviewController {
 	ReviewService reviewService;
 
     @PostMapping("/allreview")
-    public List<ReviewDTO> getReviewList(@RequestBody ReviewDTO reviewdto) {
-		return reviewService.getReviewList(reviewdto);
+    public List<ReviewDTO> getReviewList(@RequestBody ReviewReqDTO reviewReqDTO) {
+		return reviewService.getReviewList(reviewReqDTO);
     }
     
     @PostMapping("/allreview-info")
-    public Map<String,String> getReviewListInfo(@RequestBody ReviewDTO reviewdto) {
-		
-		String totCnt = "0";
-    	String avgScore = "0";
-		reviewdto.setInfoYn("Y");
-		List<ReviewDTO> list = reviewService.getReviewList(reviewdto);
-		if (list != null) {
-			totCnt = list.get(0).getTotCnt();
-			avgScore = list.get(0).getAvgScore();
-		}
+    public ReviewInfoDTO getReviewListInfo(@RequestBody ReviewReqDTO reviewReqDTO) {	
+    	reviewReqDTO.setInfoYn("Y");
+    	ReviewInfoDTO data = reviewService.getReviewListInfo(reviewReqDTO);
 
-		Map<String,String> map = new HashMap<>();
-		map.put("TotCnt", totCnt);
-		map.put("AvgScore", avgScore);
-
-		return map; 
+		return data==null? new ReviewInfoDTO():data;
     }
 
     @GetMapping("/powerreview")

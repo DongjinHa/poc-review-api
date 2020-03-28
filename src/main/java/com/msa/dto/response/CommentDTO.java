@@ -1,15 +1,13 @@
-package com.msa.dto;
+package com.msa.dto.response;
 
 import java.util.List;
 import java.util.Date;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
 
 import lombok.Data;
 
 @Data
-@Document(collection = "comments")
 public class CommentDTO {
 	@Id
 	private ObjectId _id;
